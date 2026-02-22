@@ -4,20 +4,38 @@ type AgentInput = {
 };
 
 function parseSseOutput(raw: string): any[] {
-  const lines = raw.split("\n");
-  for (const line of lines) {
-    if (!line.startsWith("data: ")) continue;
+  // SSE events are separated by blank lines; each event may have multiple "data:" lines
+  const events = raw.split(/\n\n|\r\n\r\n/);
+
+  for (const event of events) {
+    // Collect and join all data: lines within this event
+    const dataLines = event
+      .split(/\r?\n/)
+      .filter((l) => l.startsWith("data: "))
+      .map((l) => l.slice(6));
+
+    if (dataLines.length === 0) continue;
+
+    const combined = dataLines.join("");
     try {
-      const json = JSON.parse(line.slice(6));
-      if (json.type === "COMPLETE" && json.resultJson) {
-        const resultJson = json.resultJson;
-        // Support both { products: [...] } and a top-level array
-        if (Array.isArray(resultJson)) return resultJson;
-        const key = Object.keys(resultJson)[0];
-        if (key && Array.isArray(resultJson[key])) return resultJson[key];
+      const json = JSON.parse(combined);
+      if (json.type === "COMPLETE") {
+        // TinyFish may use "resultJson" or "result"
+        const payload = json.resultJson ?? json.result;
+        if (!payload) continue;
+
+        if (Array.isArray(payload)) return payload;
+
+        // Prefer explicit known array keys, then fall back to first array value
+        const preferredKeys = ["results", "products", "items", "data"];
+        for (const key of preferredKeys) {
+          if (Array.isArray(payload[key])) return payload[key];
+        }
+        const fallbackKey = Object.keys(payload).find((k) => Array.isArray(payload[k]));
+        if (fallbackKey) return payload[fallbackKey];
       }
     } catch {
-      // skip non-JSON lines
+      // not valid JSON — skip
     }
   }
   return [];

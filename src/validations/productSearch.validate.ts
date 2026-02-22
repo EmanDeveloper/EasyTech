@@ -15,8 +15,11 @@ export const validateProductSearch = async (data: ProductSearchData) => {
         throw new Error("Min price must be less than max price.");
     }
     
-    const prompt = `find the ${productType} in ${country} with price between ${minPrice} and ${maxPrice}and also give each product name,price,image,link and website name and also give the result in json format with the following keys: name, price, image, link, website.`;
+    const prompt = `find the ${productType} in ${country} with price between ${minPrice} and ${maxPrice}and also give each product name,price,image,link and website name and also give the result in json format with the following keys: name,type,country, price,link, image, website.`;
 
     const products = await runAgentTinyFish({ url: "https://www.google.com", goal: prompt });
-    return products;
+console.log("Products found:", products);
+    const res=await supabase.from('products').insert(products).select();
+    console.log("Inserted products into database:", res);
+    return res.data;
 }
