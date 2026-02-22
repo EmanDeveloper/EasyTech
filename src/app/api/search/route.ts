@@ -5,22 +5,22 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const result = await validateProductSearch(body);
+    const products = await validateProductSearch(body);
 
-    if(!result) {
+    if (!products || products.length === 0) {
       return NextResponse.json(
-        { message: "Validation failed" },
-        { status: 400 },
+        { message: "No products found" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json({
-      message: "Search query received successfully",
-      data: body,
+      message: "Search completed successfully",
+      data: products,
     });
   } catch (error) {
     return NextResponse.json(
-      { message: "Error processing request" },
+      { message: error instanceof Error ? error.message : "Error processing request" },
       { status: 500 },
     );
   }

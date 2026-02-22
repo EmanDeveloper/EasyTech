@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/DbConnection";
 import { ProductSearchData } from "@/types/product";
+import { runAgentTinyFish } from "@/lib/TinyFish";
 
 export const validateProductSearch = async (data: ProductSearchData) => {
     const {country, productType, minPrice, maxPrice} = data;
@@ -14,19 +15,8 @@ export const validateProductSearch = async (data: ProductSearchData) => {
         throw new Error("Min price must be less than max price.");
     }
     
-   const res = await supabase.from('products').insert({
-        name: productType,
-        price: (minPrice + maxPrice) / 2,
-        country: country,
-        image:"https://via.placeholder.com/150",
-        link : "https://example.com/product",
-        type: productType
-    })
+    const prompt = `find the ${productType} in ${country} with price between ${minPrice} and ${maxPrice}and also give each product name,price,image,link and website name and also give the result in json format with the following keys: name, price, image, link, website.`;
 
-    if(res.error) {
-        console.error("Error inserting product:", res.error);
-        throw new Error("Database error");
-    }
-
-    return true;
+    const products = await runAgentTinyFish({ url: "https://www.google.com", goal: prompt });
+    return products;
 }

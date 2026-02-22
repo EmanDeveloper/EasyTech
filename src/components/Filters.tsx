@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import ReactFlagsSelect from "react-flags-select";
+import { countryCodeToName } from "@/lib/countryName";
+
 
 interface FiltersProps {
   onApplyFilters: (filterData: any) => void;
@@ -38,7 +40,7 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
 
     setErrors([]);
     const filterData = {
-      country,
+      country: countryCodeToName[country] || country,
       productType,
       minPrice: min,
       maxPrice: max,
