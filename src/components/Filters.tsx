@@ -3,7 +3,11 @@
 import { useState } from "react";
 import ReactFlagsSelect from "react-flags-select";
 
-export default function Filters() {
+interface FiltersProps {
+  onApplyFilters: (filterData: any) => void;
+}
+
+export default function Filters({ onApplyFilters }: FiltersProps) {
   const [country, setCountry] = useState("");
   const [productType, setProductType] = useState("");
   const [minPrice, setMinPrice] = useState("");
@@ -40,6 +44,7 @@ export default function Filters() {
       maxPrice: max,
     };
     console.log("Applied Filters:", filterData);
+    onApplyFilters(filterData);
   };
 
   return (
