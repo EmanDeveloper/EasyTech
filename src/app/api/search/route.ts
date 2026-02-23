@@ -5,6 +5,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    
     const products = await validateProductSearch(body);
 
     if (!products || products.length === 0) {
