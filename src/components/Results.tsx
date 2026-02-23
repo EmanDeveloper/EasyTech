@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { Search, Sparkles, TrendingUp, Loader2, ExternalLink, Store } from "lucide-react";
+import { useState } from "react";
+import { Search, Sparkles, TrendingUp, Loader2, ExternalLink, Store, ArrowUpDown } from "lucide-react";
 
 interface Product {
   id?: number;
@@ -71,15 +72,35 @@ function ProductCard({ product }: { product: Product }) {
 
 export default function Results({ response, loading }: ResultsProps) {
   const products: Product[] = response?.data ?? [];
-  const grouped = groupByWebsite(products);
-  const websiteNames = Object.keys(grouped);
-  const totalCount = products.length;
+  const allWebsites = Array.from(new Set(products.map((p) => p.website ?? "Unknown")));
 
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "">("");
+  const [selectedWebsite, setSelectedWebsite] = useState<string>("all");
+
+  // Apply website filter
+  const filtered =
+    selectedWebsite === "all"
+      ? products
+      : products.filter((p) => (p.website ?? "Unknown") === selectedWebsite);
+
+  // Apply sort
+  const sorted = sortOrder
+    ? [...filtered].sort((a, b) =>
+        sortOrder === "asc" ? a.price - b.price : b.price - a.price
+      )
+    : filtered;
+
+  const grouped = groupByWebsite(sorted);
+  const websiteNames = Object.keys(grouped);
+  const totalCount = sorted.length;
+  const hasProducts = products.length > 0;
+
+  console.log("Rendering Results component with products:", products);
   return (
     <div className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
       {/* Header */}
       <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             <Search className="w-6 h-6 text-blue-600" />
             Search Results
@@ -95,6 +116,42 @@ export default function Results({ response, loading }: ResultsProps) {
             </span>
           </div>
         </div>
+
+        {/* Filters row — only when products exist */}
+        {!loading && hasProducts && (
+          <div className="flex flex-wrap items-center gap-3 mt-4">
+            {/* Sort */}
+            <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
+              <ArrowUpDown className="w-4 h-4 text-blue-500 shrink-0" />
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc" | "")}
+                className="text-sm text-gray-700 bg-transparent outline-none cursor-pointer"
+              >
+                <option value="">Sort by Price</option>
+                <option value="asc">Price: Low to High</option>
+                <option value="desc">Price: High to Low</option>
+              </select>
+            </div>
+
+            {/* Website filter */}
+            <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5 shadow-sm">
+              <Store className="w-4 h-4 text-blue-500 shrink-0" />
+              <select
+                value={selectedWebsite}
+                onChange={(e) => setSelectedWebsite(e.target.value)}
+                className="text-sm text-gray-700 bg-transparent outline-none cursor-pointer"
+              >
+                <option value="all">All Websites</option>
+                {allWebsites.map((site) => (
+                  <option key={site} value={site}>
+                    {site}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Content */}
