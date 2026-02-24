@@ -102,7 +102,6 @@ export default function Results({ response, loading }: ResultsProps) {
       <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-b border-gray-100 p-6">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-            <Search className="w-6 h-6 text-blue-600" />
             Search Results
           </h2>
           <div className="flex items-center gap-2 text-sm text-gray-600">

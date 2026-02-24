@@ -2,12 +2,19 @@
 
 import { useState } from "react";
 import ReactFlagsSelect from "react-flags-select";
-import { countryCodeToName } from "@/lib/countryName";
+import { countryCodeToName, countryCodeToCurrency } from "@/lib/countryName";
 
 
 interface FiltersProps {
   onApplyFilters: (filterData: any) => void;
 }
+
+const formatPrice = (value: string) => {
+  if (!value) return "";
+  const num = parseFloat(value.replace(/,/g, ""));
+  if (isNaN(num)) return "";
+  return num.toLocaleString();
+};
 
 export default function Filters({ onApplyFilters }: FiltersProps) {
   const [country, setCountry] = useState("");
@@ -15,6 +22,8 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
+
+  const currency = country ? (countryCodeToCurrency[country] ?? "") : "";
 
   const handleApply = () => {
     const newErrors: string[] = [];
@@ -96,21 +105,33 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
       <div className="mb-6">
         <label className="block text-sm font-medium mb-1">Price Range</label>
         <div className="flex items-center gap-2">
-          <input 
-            type="number" 
-            placeholder="Min" 
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-          />
-          <span className="text-gray-500">-</span>
-          <input 
-            type="number" 
-            placeholder="Max" 
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-            className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div className="flex flex-col w-full gap-1">
+            <span className="text-xs font-semibold text-blue-600 tracking-wide">
+              {currency }
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="Min"
+              value={formatPrice(minPrice)}
+              onChange={(e) => setMinPrice(e.target.value.replace(/,/g, ""))}
+              className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <span className="text-gray-400 mt-5">—</span>
+          <div className="flex flex-col w-full gap-1">
+            <span className="text-xs font-semibold text-blue-600 tracking-wide">
+              {currency }
+            </span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder="10,000"
+              value={formatPrice(maxPrice)}
+              onChange={(e) => setMaxPrice(e.target.value.replace(/,/g, ""))}
+              className="w-full p-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
       </div>
 
