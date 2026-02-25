@@ -143,10 +143,16 @@ export const validateProductSearch = async (data: ProductSearchData) => {
   }
 
   // 2b. DB is empty for this query → fetch from TinyFish, save, then return
-  const products = await runAgentTinyFish({
-    url: "https://www.google.com",
-    goal: buildPrompt(productType, country, minPrice, maxPrice),
-  });
+  let products: any[];
+  try {
+    products = await runAgentTinyFish({
+      url: "https://www.google.com",
+      goal: buildPrompt(productType, country, minPrice, maxPrice),
+    });
+  } catch (err) {
+    console.error("[TinyFish] Agent unreachable, returning empty results.", err);
+    return [];
+  }
 
   if (!products || products.length === 0) {
     return [];

@@ -31,12 +31,11 @@ export default function Welcome() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 text-gray-900">
-      <div>
-        <h1 className="text-3xl font-bold mb-8">Easy Search</h1>
-        
-        <div className="flex flex-col md:flex-row gap-6">
-          <Filters onApplyFilters={handleFilterSubmit} />
+    <div className="h-screen bg-gray-50 flex flex-col p-8 text-gray-900 overflow-hidden">
+      <h1 className="text-3xl font-bold mb-4 shrink-0">Easy Search</h1>
+      <div className="flex flex-col md:flex-row gap-6 flex-1 min-h-0">
+        <Filters onApplyFilters={handleFilterSubmit}/>
+        <div className="flex-1 overflow-y-auto">
           <Results response={response} loading={loading} />
         </div>
       </div>

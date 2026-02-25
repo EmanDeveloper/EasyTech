@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ReactFlagsSelect from "react-flags-select";
 import { countryCodeToName, countryCodeToCurrency } from "@/lib/countryName";
+import { supabase } from "@/lib/DbConnection";
 
 
 interface FiltersProps {
@@ -22,8 +23,25 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const currency = country ? (countryCodeToCurrency[country] ?? "") : "";
+
+  const handleSubmitFeedback = async () => {
+    if (!feedback.trim()) return;
+    setFeedbackStatus("loading");
+    const { error } = await supabase.from("feedBack").insert([{
+      commit: feedback.trim(),
+      country: country ? (countryCodeToName[country] || country) : "unknown",
+    }]);
+    if (error) {
+      setFeedbackStatus("error");
+    } else {
+      setFeedbackStatus("success");
+      setFeedback("");
+    }
+  };
 
   const handleApply = () => {
     const newErrors: string[] = [];
@@ -59,7 +77,8 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
   };
 
   return (
-    <div className="w-full md:w-64 bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-fit">
+    <div className="w-full md:w-64 shrink-0 overflow-y-auto h-full pb-10">
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
       
       {errors.length > 0 && (
@@ -141,6 +160,32 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
       >
         Apply Filters
       </button>
+    </div>
+
+    <div className="bg-white mt-6 p-6 border border-gray-200 rounded-lg shadow-sm">
+      <h2 className="text-lg font-semibold mb-1">Give Feedback</h2>
+      <p className="text-xs text-gray-500 mb-4">Help us improve your experience.</p>
+      <textarea
+        placeholder="Share your thoughts..."
+        rows={4}
+        value={feedback}
+        onChange={(e) => { setFeedback(e.target.value); setFeedbackStatus("idle"); }}
+        className="w-full p-3 text-sm border border-gray-300 rounded-md resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+      />
+      {feedbackStatus === "success" && (
+        <p className="mt-2 text-xs text-green-600">Thank you for your feedback!</p>
+      )}
+      {feedbackStatus === "error" && (
+        <p className="mt-2 text-xs text-red-600">Something went wrong. Please try again.</p>
+      )}
+      <button
+        onClick={handleSubmitFeedback}
+        disabled={feedbackStatus === "loading" || !feedback.trim()}
+        className="mt-3 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {feedbackStatus === "loading" ? "Submitting..." : "Submit Feedback"}
+      </button>
+    </div>
     </div>
   );
 }

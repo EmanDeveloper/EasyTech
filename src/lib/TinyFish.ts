@@ -41,10 +41,48 @@ function parseSseOutput(raw: string): any[] {
   return [];
 }
 
+const RETRYABLE_CODES = new Set(["EAI_AGAIN", "ECONNRESET", "ETIMEDOUT", "ENOTFOUND"]);
+
+function isRetryable(err: unknown): boolean {
+  if (err instanceof TypeError && err.message === "fetch failed") {
+    const cause = (err as any).cause;
+    return cause && RETRYABLE_CODES.has(cause.code);
+  }
+  return false;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function runAgentTinyFish(prompt: AgentInput | AgentInput[]): Promise<any[]> {
   const inputs = Array.isArray(prompt) ? prompt : [prompt];
 
   async function run(input: AgentInput): Promise<any[]> {
+    const MAX_RETRIES = 3;
+    const BASE_DELAY_MS = 1000;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await fetchRun(input);
+      } catch (err) {
+        const last = attempt === MAX_RETRIES;
+        if (isRetryable(err) && !last) {
+          const delay = BASE_DELAY_MS * 2 ** (attempt - 1);
+          console.warn(
+            `[TinyFish] Transient network error (attempt ${attempt}/${MAX_RETRIES}), retrying in ${delay}ms…`,
+            (err as any)?.cause?.code,
+          );
+          await sleep(delay);
+        } else {
+          throw err;
+        }
+      }
+    }
+    return []; // unreachable, satisfies TS
+  }
+
+  async function fetchRun(input: AgentInput): Promise<any[]> {
     const response = await fetch("https://agent.tinyfish.ai/v1/automation/run-sse", {
       method: "POST",
       headers: {
