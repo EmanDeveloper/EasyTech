@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ReactFlagsSelect from "react-flags-select";
+import Link from "next/link";
 import { countryCodeToName, countryCodeToCurrency } from "@/lib/countryName";
 import { supabase } from "@/lib/DbConnection";
 
@@ -185,6 +186,12 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
       >
         {feedbackStatus === "loading" ? "Submitting..." : "Submit Feedback"}
       </button>
+      <Link
+        href="/feedBack"
+        className="mt-2 w-full block text-center border border-blue-600 text-blue-600 py-2 px-4 rounded-md hover:bg-blue-50 transition-colors text-sm font-medium"
+      >
+        View Feedback
+      </Link>
     </div>
     </div>
   );
