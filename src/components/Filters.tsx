@@ -163,7 +163,7 @@ export default function Filters({ onApplyFilters }: FiltersProps) {
       </button>
     </div>
 
-    <div className="bg-white mt-6 p-6 border border-gray-200 rounded-lg shadow-sm">
+    <div className="hidden md:block bg-white mt-6 p-6 border border-gray-200 rounded-lg shadow-sm">
       <h2 className="text-lg font-semibold mb-1">Give Feedback</h2>
       <p className="text-xs text-gray-500 mb-4">Help us improve your experience.</p>
       <textarea
